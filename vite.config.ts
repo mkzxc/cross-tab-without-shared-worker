@@ -1,11 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { build } from "esbuild";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
 //TODO There must be another way
-function dedicatedWorkerPlugin() {
+function dedicatedWorkerPlugin(): Plugin {
   let workerContent: Buffer | null = null;
 
   async function buildWorker() {
@@ -31,8 +31,8 @@ function dedicatedWorkerPlugin() {
         await buildWorker();
       }
     },
-    configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
         if (req.url === "/src/db.worker.ts?worker_file&type=module") {
           if (!workerContent) {
             next();
@@ -64,7 +64,7 @@ function dedicatedWorkerPlugin() {
   };
 }
 
-function serviceWorkerPlugin() {
+function serviceWorkerPlugin(): Plugin {
   let swContent: Buffer | null = null;
 
   async function buildSW() {
@@ -88,8 +88,8 @@ function serviceWorkerPlugin() {
         await buildSW();
       }
     },
-    configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
         if (req.url === "/sw.js") {
           if (!swContent) {
             next();

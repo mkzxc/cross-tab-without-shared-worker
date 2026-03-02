@@ -1,5 +1,5 @@
 import sqlite3InitModule, {
-  OpfsSAHPoolDatabase,
+  type OpfsSAHPoolDatabase,
 } from "@sqlite.org/sqlite-wasm";
 import type { Row, SWToDWMessage } from "./sw/sw-types";
 

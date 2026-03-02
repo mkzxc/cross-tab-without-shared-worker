@@ -91,6 +91,8 @@ async function concurrencyTest() {
     body: JSON.stringify({ sql: "SELECT content FROM messages ORDER BY id" }),
   });
   const { rows: allRows } = await res2.json();
+  //TODO I don't care about it right now
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const contents = allRows.map((r: any) => r.content);
   const unique = new Set(contents);
   const areThereDuplicates = unique.size !== contents.length;
