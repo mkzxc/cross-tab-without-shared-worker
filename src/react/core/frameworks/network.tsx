@@ -1,7 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import type { FC } from "react";
+import { getQueryClient } from "../../../sw/sw-query-client";
 
-const queryClient = new QueryClient();
+const queryClient = getQueryClient();
 
 const NetworkProvider: FC<React.PropsWithChildren> = ({ children }) => {
   return (

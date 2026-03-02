@@ -1,9 +1,13 @@
 import { setupButtons } from "./buttons";
 import { setupReact } from "./react";
+import { QUERY_KEYS } from "./react/api/queryKeys";
+import { getQueryClient } from "./sw/sw-query-client";
 import type { HasWorkerResponse, SWToTabMessage } from "./sw/sw-types";
 
 //Keep reference to active dedicated worker
 let currentDW: Worker | null = null;
+
+const queryClient = getQueryClient();
 
 async function getActiveSW() {
   try {
@@ -71,8 +75,13 @@ async function setup() {
     async (event: MessageEvent<SWToTabMessage>) => {
       console.log("SW message:", event.data);
 
+      if (event.data.type === "DB_UPDATED") {
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.messages],
+        });
+      }
+
       if (event.data.type === "CREATE_WORKER") {
-        console.trace("[Tab] CREATE_WORKER received");
         await createDW();
       }
 
