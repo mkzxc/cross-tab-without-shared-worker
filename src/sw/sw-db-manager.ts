@@ -4,6 +4,8 @@ import { ensurePortIsReady, getWorkerPort } from "./sw-dw-manager";
 import { notifyAllTabs } from "./sw-tabs-manager";
 import type { DBExecBody, DWToSWMessage, SWToDWMessage } from "./sw-types";
 
+//TODO Overriding the onmessage callback really doesn't seem like a good solution
+//TODO Should there be a retry instead of just returning 500 and waiting for the next request?
 async function sendToWorker(message: SWToDWMessage) {
   return new Promise((resolve, reject) => {
     const workerPort = getWorkerPort();

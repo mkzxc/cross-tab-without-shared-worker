@@ -7,10 +7,12 @@ import type { TabToSWMessage, DWToSWMessage } from "./sw-types";
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
+//We don't want to wait for the existing SW to not have any clients
 sw.addEventListener("install", () => {
   sw.skipWaiting();
 });
 
+//After installing we want to take control of every client
 sw.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(sw.clients.claim());
 });
