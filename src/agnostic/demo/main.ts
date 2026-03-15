@@ -33,5 +33,3 @@ tab.setup().then(() => {
   setupButtons();
   setupReact();
 });
-
-export { CONFIGS_KEY };
