@@ -1,16 +1,14 @@
-//TODO This should be used only in a .worker.ts file so https://stackoverflow.com/questions/56356655/structuring-a-typescript-project-with-workers
-
 /**
  * Shapes user data handler so that it fits into library architecture
  */
-class Adapter {
+class MessageHandlerAdapter<T> {
   #initializerDW: () => void;
   #port: MessagePort | null = null;
 
   /**
    * @param handler This callback should handle all the possible sent message that are differentiated by the key
    */
-  constructor(handler: (data: unknown) => unknown) {
+  constructor(handler: (payload: T) => unknown) {
     this.#initializerDW = () => {
       self.postMessage({ type: "READY" });
       self.addEventListener("message", (event) => {
@@ -51,4 +49,4 @@ class Adapter {
   };
 }
 
-export { Adapter };
+export { MessageHandlerAdapter };

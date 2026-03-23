@@ -1,14 +1,15 @@
+import type { ActionsAdapter } from "./adapters/ActionsAdapter";
 import { LOCKS } from "./const";
-import type { Provider } from "./provider";
 import type { SWToTabMessage } from "./types";
 
-class Tab {
+//I don't like this generic here, probably it's acceptable to use unknown here
+class Tab<T> {
   //This can't be shared across instances since only one tab must have this set different to null
   #currentDW: Worker | null = null;
-  #Provider;
+  #ActionsAdapter;
 
-  constructor(provider: Provider) {
-    this.#Provider = provider;
+  constructor(actionsAdapter: ActionsAdapter<T>) {
+    this.#ActionsAdapter = actionsAdapter;
   }
 
   private getActiveSW = async () => {
@@ -93,7 +94,7 @@ class Tab {
             "key" in event.data.payload &&
             typeof event.data.payload.key === "string"
           ) {
-            const linkedConfig = this.#Provider.getConfig(
+            const linkedConfig = this.#ActionsAdapter.getActions(
               event.data.payload.key,
             );
             if (!linkedConfig) {
@@ -103,7 +104,8 @@ class Tab {
                 "result" in event.data.payload &&
                 typeof event.data.payload === "object"
               ) {
-                linkedConfig.onSuccess(event.data.payload.result);
+                //@ts-expect-error //TODO WIP
+                linkedConfig.onSuccess?.(event.data.payload.result);
               }
             }
           }

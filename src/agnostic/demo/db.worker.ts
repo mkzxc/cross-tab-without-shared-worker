@@ -1,8 +1,8 @@
 import sqlite3InitModule, {
   type OpfsSAHPoolDatabase,
 } from "@sqlite.org/sqlite-wasm";
-import { Adapter } from "../adapter";
 import { CONFIGS_KEY } from "./const";
+import { MessageHandlerAdapter } from "../adapters/MessageHandlerAdapter";
 
 let db: OpfsSAHPoolDatabase | null = null;
 
@@ -35,8 +35,11 @@ async function initDB() {
   console.log("DW: Initialized DB");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleMessage(payload: any) {
+// I will get the key from the custom header
+//TODO Generic
+function handleMessage<
+  T extends { key: (typeof CONFIGS_KEY)[keyof typeof CONFIGS_KEY] },
+>(payload: T) {
   try {
     if (!db) {
       //Should never happen
@@ -45,6 +48,7 @@ function handleMessage(payload: any) {
     if (payload.key === CONFIGS_KEY.postMessage) {
       db.exec("BEGIN TRANSACTION");
       try {
+        //@ts-expect-error Look above
         db.exec({ sql: payload.sql, bind: payload.bind ?? [] });
         db.exec("COMMIT");
       } catch (err) {
@@ -54,7 +58,9 @@ function handleMessage(payload: any) {
     } else if (payload.key === CONFIGS_KEY.getMessage) {
       const rows: unknown[] = [];
       db.exec({
+        //@ts-expect-error Look above
         sql: payload.sql,
+        //@ts-expect-error Look above
         bind: payload.bind ?? [],
         rowMode: "object",
         callback: (row) => {
@@ -71,7 +77,10 @@ function handleMessage(payload: any) {
   }
 }
 
-const adapter = new Adapter(handleMessage);
+//TODO Look above
+const adapter = new MessageHandlerAdapter<{
+  key: (typeof CONFIGS_KEY)[keyof typeof CONFIGS_KEY];
+}>(handleMessage);
 
 initDB().then(() => {
   const init = adapter.getInitializerDW();

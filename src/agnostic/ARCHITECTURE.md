@@ -19,11 +19,13 @@ Encapsulate logic around a domain problem:
 
 Acts as a bridge between the SW and the DW for the custom operations
 
-## Adapter
+## Adapters
+
+### MessageHandlerAdapter
 
 Shapes user data handler so that it fits into library architecture
 
-## Provider
+### ActionsAdapter
 
 Inject custom configs to handle different stages of an operation
 The key is essential to differentiating configs for both internal and external use
