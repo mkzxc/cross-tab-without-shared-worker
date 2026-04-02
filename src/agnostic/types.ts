@@ -1,25 +1,37 @@
+import type {
+  DW_TO_SW_MESSAGE_TYPES,
+  SW_TO_DW_MESSAGE_TYPES,
+  SW_TO_TAB_MESSAGE_TYPES,
+  TAB_TO_DW_MESSAGE_TYPES,
+  TAB_TO_SW_MESSAGE_TYPES,
+} from "./const";
+
 type TabToSWMessage =
-  | { type: "HAS_WORKER_REQUEST" }
-  | { type: "WORKER_PORT"; payload: MessagePort }
-  | { type: "TAB_READY" }
-  | { type: "RESEND_PORT" }
-  | { type: "NO_WORKER_HERE" };
+  | { type: (typeof TAB_TO_SW_MESSAGE_TYPES)[0] }
+  | { type: (typeof TAB_TO_SW_MESSAGE_TYPES)[1]; payload: MessagePort }
+  | { type: (typeof TAB_TO_SW_MESSAGE_TYPES)[2] }
+  | { type: (typeof TAB_TO_SW_MESSAGE_TYPES)[3] };
 
 type SWToTabMessage =
-  | { type: "PORT_READY" }
-  | { type: "CREATE_WORKER" }
-  | { type: "RESEND_PORT" }
-  | { type: "OP_SUCCESS"; payload: unknown }
-  | { type: "HAS_WORKER_RESPONSE"; payload: boolean };
+  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[0] }
+  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[1] }
+  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[2] }
+  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[3]; payload: unknown }
+  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[4]; payload: boolean };
 
 type DWToSWMessage =
-  | { type: "PONG" }
-  | { type: "SUCCESS"; result: unknown }
-  | { type: "FAILURE"; error: string };
+  | { type: (typeof DW_TO_SW_MESSAGE_TYPES)[0] }
+  | { type: (typeof DW_TO_SW_MESSAGE_TYPES)[1]; result: unknown }
+  | { type: (typeof DW_TO_SW_MESSAGE_TYPES)[2]; error: string };
 
-type SWToDWMessage = { type: "PING" } | { type: "OP"; payload: unknown };
+type SWToDWMessage =
+  | { type: (typeof SW_TO_DW_MESSAGE_TYPES)[0] }
+  | { type: (typeof SW_TO_DW_MESSAGE_TYPES)[1]; payload: unknown };
 
-type TabToDWMessage = { type: "SW_PORT"; payload: MessagePort };
+type TabToDWMessage = {
+  type: (typeof TAB_TO_DW_MESSAGE_TYPES)[0];
+  payload: MessagePort;
+};
 
 export type {
   TabToSWMessage,

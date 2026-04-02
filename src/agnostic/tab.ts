@@ -1,7 +1,7 @@
 import type { ActionsAdapter } from "./adapters/ActionsAdapter";
 import type { ActionData } from "./adapters/types";
 import { LOCKS } from "./const";
-import type { SWToTabMessage } from "./types";
+import type { SWToTabMessage, TabToDWMessage, TabToSWMessage } from "./types";
 
 //I don't like this generic here, probably it's acceptable to use unknown here
 class Tab<T extends ActionData> {
@@ -24,10 +24,30 @@ class Tab<T extends ActionData> {
     }
   };
 
+  private postMessageToDW = (
+    DW: Worker,
+    message: TabToDWMessage,
+    port: MessagePort,
+  ) => {
+    DW.postMessage(message, [port]);
+  };
+
+  private postMessageToSW = (
+    SW: ServiceWorker,
+    message: TabToSWMessage,
+    port?: MessagePort,
+  ) => {
+    const transferable: Transferable[] = [];
+    if (port) {
+      transferable.push(port);
+    }
+    SW.postMessage(message, transferable);
+  };
+
   private sendPortToSW = async (DW: Worker) => {
     const reg = await this.getActiveSW();
     const { port1, port2 } = new MessageChannel();
-    DW.postMessage({ type: "SW_PORT", port: port1 }, [port1]);
+    this.postMessageToDW(DW, { type: "SW_PORT", payload: port1 }, port1);
 
     await new Promise((resolve) => {
       const listener = (e: MessageEvent<SWToTabMessage>) => {
@@ -38,7 +58,7 @@ class Tab<T extends ActionData> {
       };
 
       navigator.serviceWorker.addEventListener("message", listener);
-      reg.postMessage({ type: "WORKER_PORT", payload: port2 }, [port2]);
+      this.postMessageToSW(reg, { type: "WORKER_PORT", payload: port2 }, port2);
     });
   };
 
@@ -54,7 +74,7 @@ class Tab<T extends ActionData> {
         }
         resolve(e.data.payload);
       };
-      SW.postMessage({ type: "HAS_WORKER_REQUEST" }, [port2]);
+      this.postMessageToSW(SW, { type: "HAS_WORKER_REQUEST" }, port2);
     });
   };
 
@@ -140,7 +160,7 @@ class Tab<T extends ActionData> {
       await this.createDW();
     }
 
-    reg.postMessage({ type: "TAB_READY" });
+    this.postMessageToSW(reg, { type: "TAB_READY" });
   };
 }
 

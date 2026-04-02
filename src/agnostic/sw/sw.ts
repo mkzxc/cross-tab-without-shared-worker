@@ -1,7 +1,8 @@
 //TODO This should be handled differently: https://stackoverflow.com/questions/56356655/structuring-a-typescript-project-with-workers
 /// <reference lib="webworker" />
 
-import type { DWToSWMessage, TabToSWMessage } from "../types";
+import { TAB_TO_SW_MESSAGE_TYPES } from "../const";
+import type { DWToSWMessage, SWToTabMessage, TabToSWMessage } from "../types";
 import { Gateway } from "./gateway";
 import { DWService } from "./services/DWService";
 import { TabService } from "./services/TabsService";
@@ -23,7 +24,7 @@ class SW {
     const portDW = this.#DWService.getPort();
     if (!portDW) return false;
 
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
       const timeout = setTimeout(() => {
         this.#DWService.resetPortAndOwner();
         resolve(false);
@@ -40,6 +41,25 @@ class SW {
     });
   }
 
+  private isTabMessage = (data: unknown): data is TabToSWMessage => {
+    return Boolean(
+      typeof data === "object" &&
+      data &&
+      "type" in data &&
+      typeof data.type === "string" &&
+      TAB_TO_SW_MESSAGE_TYPES.includes(
+        data.type as (typeof TAB_TO_SW_MESSAGE_TYPES)[number],
+      ),
+    );
+  };
+
+  private sendMessageToTab = (
+    wire: MessagePort | WindowClient,
+    message: SWToTabMessage,
+  ) => {
+    wire.postMessage(message);
+  };
+
   initializeSW = () => {
     //We don't want to wait for the existing SW to not have any clients
     this.#sw.addEventListener("install", () => {
@@ -51,25 +71,31 @@ class SW {
     });
 
     this.#sw.addEventListener("message", async (event) => {
-      const data = event.data as TabToSWMessage;
+      if (!this.isTabMessage(event.data)) {
+        console.error(
+          `Unsupported message, SW expects TabToSWMessage`,
+          event.data,
+        );
+        return;
+      }
 
-      if (data.type === "TAB_READY") {
+      if (event.data.type === "TAB_READY") {
         const source = event.source as WindowClient;
         this.#tabsService.addTab(source.id);
       }
 
-      if (data.type === "HAS_WORKER_REQUEST") {
+      if (event.data.type === "HAS_WORKER_REQUEST") {
         const isAlive = await this.isPortAlive();
-        event.ports[0].postMessage({
+        this.sendMessageToTab(event.ports[0], {
           type: "HAS_WORKER_RESPONSE",
           payload: isAlive,
         });
       }
 
-      if (data.type === "WORKER_PORT") {
+      if (event.data.type === "WORKER_PORT") {
         const source = event.source as WindowClient;
-        this.#DWService.setPortAndOwner(data.payload, source.id);
-        source.postMessage({ type: "PORT_READY" });
+        this.#DWService.setPortAndOwner(event.data.payload, source.id);
+        this.sendMessageToTab(source, { type: "PORT_READY" });
       }
     });
 
