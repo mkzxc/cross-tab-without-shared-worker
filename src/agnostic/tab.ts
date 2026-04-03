@@ -8,9 +8,17 @@ class Tab<T extends ActionData> {
   //This can't be shared across instances since only one tab must have this set different to null
   #currentDW: Worker | null = null;
   #ActionsAdapter;
+  #pathSW;
+  #pathDW;
 
-  constructor(actionsAdapter: ActionsAdapter<T>) {
+  constructor(
+    pathServiceWorker: string | URL,
+    pathWorker: string | URL,
+    actionsAdapter: ActionsAdapter<T>,
+  ) {
     this.#ActionsAdapter = actionsAdapter;
+    this.#pathSW = pathServiceWorker;
+    this.#pathDW = pathWorker;
   }
 
   private getActiveSW = async () => {
@@ -85,8 +93,7 @@ class Tab<T extends ActionData> {
       const hasDW = await this.doesSWHaveDW(reg);
       if (hasDW) return;
 
-      //TODO Worker url should be a responsability of who instances this class
-      const DW = new Worker(new URL("./demo/db.worker.ts", import.meta.url), {
+      const DW = new Worker(this.#pathDW, {
         type: "module",
       });
 
@@ -146,7 +153,7 @@ class Tab<T extends ActionData> {
       },
     );
 
-    await navigator.serviceWorker.register("/sw.js", { type: "module" });
+    await navigator.serviceWorker.register(this.#pathSW, { type: "module" });
     const reg = await this.getActiveSW();
 
     if (!navigator.serviceWorker.controller) {

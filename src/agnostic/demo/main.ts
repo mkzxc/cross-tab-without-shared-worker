@@ -49,7 +49,11 @@ const actionsAdapter = new ActionsAdapter<Config>([
   },
 ]);
 
-const tab = new Tab(actionsAdapter);
+const tab = new Tab(
+  "/sw.js",
+  new URL("./db.worker.ts", import.meta.url),
+  actionsAdapter,
+);
 
 tab.setup().then(() => {
   //IDK do what you need to do
