@@ -57,7 +57,7 @@ class Gateway {
         const result = await this.sendToDW(
           {
             type: "OP",
-            payload: { ...body, key },
+            payload: { data: { ...body }, key },
           },
           getDWPort,
         );
