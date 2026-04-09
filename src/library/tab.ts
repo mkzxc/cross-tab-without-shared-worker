@@ -108,6 +108,31 @@ class Tab<T extends ActionData> {
     });
   };
 
+  private getLinkedConfigByPayload = (payload: unknown) => {
+    if (
+      typeof payload === "object" &&
+      payload &&
+      "key" in payload &&
+      typeof payload.key === "string"
+    ) {
+      return this.#ActionsAdapter.getAction(payload.key);
+    }
+  };
+
+  private onOpSuccess = async (payload: unknown) => {
+    const linkedConfig = this.getLinkedConfigByPayload(payload);
+    if (!linkedConfig) {
+      console.error("Can't get linked config, payload:", payload);
+      return;
+    }
+    if (typeof payload === "object" && payload && "result" in payload) {
+      const success = linkedConfig.onSuccess?.(
+        payload.result as ReturnType<T[Extract<keyof T, string>]>,
+      );
+      if (success instanceof Promise) await success;
+    }
+  };
+
   setup = async () => {
     navigator.serviceWorker.addEventListener(
       "message",
@@ -115,28 +140,7 @@ class Tab<T extends ActionData> {
         console.log("SW message:", event.data);
 
         if (event.data.type === "OP_SUCCESS") {
-          //TODO Testing purposes
-          if (
-            typeof event.data.payload === "object" &&
-            event.data.payload &&
-            "key" in event.data.payload &&
-            typeof event.data.payload.key === "string"
-          ) {
-            const linkedConfig = this.#ActionsAdapter.getActions(
-              event.data.payload.key,
-            );
-            if (!linkedConfig) {
-              console.error("Can't get linked config in tab handler");
-            } else {
-              if (
-                "result" in event.data.payload &&
-                typeof event.data.payload === "object"
-              ) {
-                //@ts-expect-error //TODO WIP
-                linkedConfig.onSuccess?.(event.data.payload.result);
-              }
-            }
-          }
+          await this.onOpSuccess(event.data.payload);
         }
 
         if (event.data.type === "CREATE_WORKER") {

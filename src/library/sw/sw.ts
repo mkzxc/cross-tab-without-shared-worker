@@ -102,7 +102,6 @@ class SW {
     this.#sw.addEventListener("fetch", (event) => {
       //Only request with X-Key header will be custom handled
       const keyHeader = event.request.headers.get("X-Key");
-      console.log("event", event);
       if (typeof keyHeader === "string" && keyHeader.length > 0) {
         event.respondWith(
           this.#Gateway.handleFetch(

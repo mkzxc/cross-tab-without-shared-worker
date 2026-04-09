@@ -40,8 +40,8 @@ const actionsAdapter = new ActionsAdapter<Config>([
     key: CONFIGS_KEY.postMessage,
     // fetcher: postMessage,
     fetchFn: (_payload) => {},
-    onSuccess: () =>
-      queryClient.invalidateQueries({
+    onSuccess: async () =>
+      await queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.messages],
       }),
     onError: (error) =>

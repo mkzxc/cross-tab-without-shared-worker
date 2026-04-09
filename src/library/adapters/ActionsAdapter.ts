@@ -31,7 +31,7 @@ class ActionsAdapter<T extends ActionData> {
   }
 
   //TODO I don't like this typecasting, but it should be the safest thing to do for what it's used for
-  getActions(key: string) {
+  getAction(key: string) {
     return this.#actions.get(key as Extract<keyof T, string>) || null;
   }
 }
