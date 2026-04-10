@@ -1,3 +1,5 @@
+import type { SWToTabMessage } from "../../types";
+
 class TabService {
   #readyTabs = new Set<string>();
 
@@ -48,7 +50,11 @@ class TabService {
     });
   };
 
-  notifyAllTabs = async (sw: ServiceWorkerGlobalScope, data: unknown) => {
+  notifyAllTabs = async (
+    sw: ServiceWorkerGlobalScope,
+    data: unknown,
+    type: SWToTabMessage["type"],
+  ) => {
     const allClients = await sw.clients.matchAll({
       includeUncontrolled: true,
       type: "window",
@@ -56,7 +62,7 @@ class TabService {
     allClients.forEach((client) =>
       client.postMessage({
         payload: { ...(data as object) },
-        type: "OP_SUCCESS",
+        type: type,
       }),
     );
   };

@@ -1,5 +1,5 @@
 import { LOCKS } from "../const";
-import type { DWToSWMessage, SWToDWMessage } from "../types";
+import type { DWToSWMessage, SWToDWMessage, SWToTabMessage } from "../types";
 
 class Gateway {
   //TODO Overriding the onmessage callback really doesn't seem like a good solution
@@ -48,12 +48,13 @@ class Gateway {
     notifyAllTabs: (
       sw: ServiceWorkerGlobalScope,
       data: unknown,
+      type: SWToTabMessage["type"],
     ) => Promise<void>,
   ) => {
-    const body = (await event.request.json()) as object;
-    try {
-      await ensureDWPort(sw);
-      return await navigator.locks.request(LOCKS.customOperation, async () => {
+    return await navigator.locks.request(LOCKS.customOperation, async () => {
+      try {
+        const body = (await event.request.json()) as object;
+        await ensureDWPort(sw);
         const result = await this.sendToDW(
           {
             type: "OP",
@@ -62,20 +63,31 @@ class Gateway {
           getDWPort,
         );
         const response = (result as { result: unknown }).result;
-        await notifyAllTabs(sw, {
-          result: response,
-          key,
-        });
+        await notifyAllTabs(
+          sw,
+          {
+            result: response,
+            key,
+          },
+          "OP_SUCCESS",
+        );
         return new Response(JSON.stringify(response));
-      });
-    } catch (err) {
-      const error = err as Error;
-      console.error("SW operation error:", error.message);
-      return new Response(
-        JSON.stringify({ success: false, error: error.message }),
-        { status: 500 },
-      );
-    }
+      } catch (err) {
+        const error = err as Error;
+        console.error("SW operation error:", error.message);
+        await notifyAllTabs(
+          sw,
+          {
+            result: error.message,
+            key,
+          },
+          "OP_ERROR",
+        );
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+        });
+      }
+    });
   };
 }
 
