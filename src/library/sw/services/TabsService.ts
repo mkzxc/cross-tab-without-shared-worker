@@ -66,6 +66,10 @@ class TabService {
       }),
     );
   };
+
+  getTabs = () => {
+    return this.#readyTabs;
+  };
 }
 
 export { TabService };
