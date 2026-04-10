@@ -18,7 +18,7 @@ type SWToTabMessage =
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[2] }
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[3]; payload: unknown }
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[4]; payload: boolean }
-  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[5]; payload: string };
+  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[5]; payload: { error: string } };
 
 type DWToSWMessage =
   | { type: (typeof DW_TO_SW_MESSAGE_TYPES)[0] }
