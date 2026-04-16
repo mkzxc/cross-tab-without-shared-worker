@@ -76,10 +76,10 @@ class WorkerAdapter<T extends ActionData> {
   };
 
   /**
-   * @param handler This callback should handle all the possible sent message that are differentiated by the key
+   * @param onMessage This callback should handle all the possible sent message that are differentiated by the key
    */
   constructor(
-    handler: (payload: HandlerPayload<T>) => unknown,
+    onMessage: (payload: HandlerPayload<T>) => unknown,
     onTermination?: () => void,
   ) {
     this.#initializerDW = () => {
@@ -106,7 +106,7 @@ class WorkerAdapter<T extends ActionData> {
             }
 
             try {
-              this.handleSWMessage(e.data, handler);
+              this.handleSWMessage(e.data, onMessage);
             } catch (error) {
               if (!this.#port) {
                 //Should never happen
