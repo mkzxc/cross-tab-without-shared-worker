@@ -3,7 +3,6 @@ import { setupButtons } from "./buttons";
 import { setupReact } from "../react";
 import { QUERY_KEYS } from "../react/api/queryKeys";
 import { queryClient } from "../react/core/frameworks/network";
-import { ActionsAdapter } from "../library/adapters/ActionsAdapter";
 import { Tab } from "../library/tab";
 import { CONFIGS_KEY } from "./const";
 
@@ -26,35 +25,12 @@ type Config = {
   [postMessage]: (payload: DBExecBody) => void;
 };
 
-const actionsAdapter = new ActionsAdapter<Config>([
-  {
-    key: "GET_MESSAGES",
-    fetchFn: (_payload) => {
-      return { date: 1, id: "a", value: "abc" };
-    },
-    onSuccess: (_data) => {},
-    onError: (error) =>
-      console.error("Error printed by config linked with get cb", error),
-  },
-  {
-    key: CONFIGS_KEY.postMessage,
-    // fetcher: postMessage,
-    fetchFn: (_payload) => {},
-    onSuccess: async () =>
-      await queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.messages],
-      }),
-    onError: (error) =>
-      console.error("Error printed by config linked with post cb", error),
-  },
-]);
-
 const id = Math.random() > 0.5 ? "abc" : "def";
 
 const url = new URL("./db.worker.ts", import.meta.url);
 url.searchParams.set("id", id);
 
-const tab = new Tab("/sw.js", url, id, actionsAdapter);
+const tab = new Tab<Config>("/sw.js", url, id);
 
 tab.subscribe("OP_SUCCESS", (payload) => {
   if (payload && payload.key === "POST_MESSAGE") {
@@ -65,6 +41,9 @@ tab.subscribe("OP_SUCCESS", (payload) => {
 tab.subscribe("OP_SUCCESS", (payload) => {
   if (payload && payload.key === "POST_MESSAGE") {
     console.log("Another try for sub", payload.result);
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.messages],
+    });
   }
 });
 

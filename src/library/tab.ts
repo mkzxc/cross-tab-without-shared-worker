@@ -1,4 +1,3 @@
-import type { ActionsAdapter } from "./adapters/ActionsAdapter";
 import type { ActionData } from "./adapters/types";
 import { LOCKS } from "./const";
 import { EventBus } from "./core/EventBus";
@@ -13,7 +12,6 @@ import type {
 class Tab<T extends ActionData> {
   //This can't be shared across instances since only one tab must have this set different to null
   #currentDW: Worker | null = null;
-  #ActionsAdapter;
   #pathSW;
   #pathDW;
   #idDW;
@@ -23,9 +21,7 @@ class Tab<T extends ActionData> {
     pathServiceWorker: string | URL,
     pathWorker: string | URL,
     idWorker: string,
-    actionsAdapter: ActionsAdapter<T>,
   ) {
-    this.#ActionsAdapter = actionsAdapter;
     this.#pathSW = pathServiceWorker;
     this.#pathDW = pathWorker;
     this.#idDW = idWorker;
@@ -128,41 +124,6 @@ class Tab<T extends ActionData> {
     });
   };
 
-  private getLinkedConfigByPayload = (payload: unknown) => {
-    if (
-      typeof payload === "object" &&
-      payload &&
-      "key" in payload &&
-      typeof payload.key === "string"
-    ) {
-      return this.#ActionsAdapter.getAction(payload.key);
-    }
-  };
-
-  private onOpSuccess = async (payload: unknown) => {
-    const linkedConfig = this.getLinkedConfigByPayload(payload);
-    if (!linkedConfig) {
-      console.error("Can't get linked config, payload:", payload);
-      return;
-    }
-    if (typeof payload === "object" && payload && "result" in payload) {
-      const success = linkedConfig.onSuccess?.(
-        payload.result as ReturnType<T[Extract<keyof T, string>]>,
-      );
-      if (success instanceof Promise) await success;
-    }
-  };
-
-  private onOpError = async (payload: { error: string }) => {
-    const linkedConfig = this.getLinkedConfigByPayload(payload);
-    if (!linkedConfig) {
-      console.error("Can't get linked config, payload:", payload);
-      return;
-    }
-    const error = linkedConfig.onError?.(new Error(payload.error));
-    if (error instanceof Promise) await error;
-  };
-
   private publish: EventBus<T>["publish"] = (topic, ...args) => {
     if (topic === "WORKER_TERMINATED") {
       this.#eventBus.publish("WORKER_TERMINATED");
@@ -219,13 +180,11 @@ class Tab<T extends ActionData> {
         }
 
         if (event.data.type === "OP_SUCCESS") {
-          await this.onOpSuccess(event.data.payload);
           //@ts-expect-error This is linked to TODO in library/types.ts
           this.publish(event.data.type, event.data.payload);
         }
 
         if (event.data.type === "OP_ERROR") {
-          await this.onOpError(event.data.payload);
           //@ts-expect-error This is linked to TODO in library/types.ts
           this.publish(event.data.type, event.data.payload);
         }
