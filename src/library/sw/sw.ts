@@ -63,6 +63,21 @@ class SW {
     wire.postMessage(message);
   };
 
+  private getDWLinkedToTab = (id: string) => {
+    //Find DW linked to Tab causing request
+    const idDW = Array.from(this.#map.keys()).find((item) =>
+      this.#map.get(item)?.tabsService.getTabs().has(id),
+    );
+    //Not the cleanest but should be good enough
+    const linkedDW = this.#map.get(idDW || "");
+
+    if (!linkedDW || !idDW) {
+      throw new Error(`Can't find DW linked to ${id}`);
+    }
+
+    return { id: idDW, worker: linkedDW };
+  };
+
   initializeSW = () => {
     //We don't want to wait for the existing SW to not have any clients
     this.#sw.addEventListener("install", () => {
@@ -116,6 +131,49 @@ class SW {
           linked.dwService.setPortAndOwner(event.data.payload.port, source.id);
         }
         this.sendMessageToTab(source, { type: "PORT_READY" });
+      }
+
+      if (event.data.type === "FIND_TAB_TO_TERMINATE_WORKER") {
+        try {
+          const { worker: linkedDW } = this.getDWLinkedToTab(
+            (event.source as Client).id,
+          );
+          await linkedDW.dwService.setupClosing(() =>
+            linkedDW.tabsService.notifyAllTabs(
+              this.#sw,
+              null,
+              "ELECTED_TAB_SHOULD_TERMINATE_WORKER",
+            ),
+          );
+        } catch (error) {
+          let message =
+            "Error in SW upon receiving FIND_TAB_TO_TERMINATE_WORKER";
+          if (error instanceof Error) {
+            message += `: ${error.message}`;
+          }
+          console.error(message);
+        }
+      }
+
+      if (event.data.type === "ELECTED_TAB_TERMINATED_WORKER") {
+        try {
+          const { id: idDW, worker: linkedDW } = this.getDWLinkedToTab(
+            (event.source as Client).id,
+          );
+          linkedDW.dwService.confirmClosing();
+          linkedDW.tabsService.notifyAllTabs(
+            this.#sw,
+            null,
+            "WORKER_TERMINATED",
+          );
+          this.#map.delete(idDW);
+        } catch (error) {
+          let message = "Error in SW upon receiving WORKER_TERMINATED";
+          if (error instanceof Error) {
+            message += `: ${error.message}`;
+          }
+          console.error(message);
+        }
       }
     });
 

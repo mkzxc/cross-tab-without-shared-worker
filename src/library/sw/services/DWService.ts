@@ -1,8 +1,11 @@
+import { LOCKS } from "../../const";
+
 class DWService {
   #portToSW: MessagePort | null = null;
   #owner: string | null = null;
   #ready: { promise: Promise<unknown>; resolve: () => void } | null = null;
   #recovery: Promise<void> | null = null;
+  #close: { resolve: () => void; reject: () => void } | null = null;
 
   constructor() {}
 
@@ -71,6 +74,20 @@ class DWService {
 
     this.#recovery = this.handleRecovery(sw, getClient);
     await this.#recovery;
+  };
+
+  setupClosing = async (onStart: () => void) => {
+    await navigator.locks.request(LOCKS.closeDW, async () => {
+      await new Promise<void>((resolve, reject) => {
+        this.#close = { resolve, reject };
+        onStart();
+      });
+    });
+  };
+
+  confirmClosing = () => {
+    this.#close?.resolve();
+    this.#close = null;
   };
 }
 
