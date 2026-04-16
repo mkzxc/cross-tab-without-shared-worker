@@ -7,14 +7,12 @@ type HandlerData<T, K> = {
   data: K;
 };
 
+//https://stackoverflow.com/a/68352232
 type HandlerPayload<T extends ActionData> = {
   [K in Extract<keyof T, string>]: HandlerData<K, Parameters<T[K]>[0]>;
 }[Extract<keyof T, string>];
 
-/**
- * Shapes user data handler so that it fits into library architecture
- */
-class MessageHandlerAdapter<T extends ActionData> {
+class WorkerAdapter<T extends ActionData> {
   #initializerDW: () => void;
   #port: MessagePort | null = null;
 
@@ -75,10 +73,10 @@ class MessageHandlerAdapter<T extends ActionData> {
   };
 
   /**
-   * @param handler This callback should handle all the possible sent message that are differentiated by the key
+   * @param onMessage This callback should handle all the possible sent message that are differentiated by the key
    */
   constructor(
-    handler: (payload: HandlerPayload<T>) => unknown,
+    onMessage: (payload: HandlerPayload<T>) => unknown,
     onTermination?: () => void,
   ) {
     this.#initializerDW = () => {
@@ -105,7 +103,7 @@ class MessageHandlerAdapter<T extends ActionData> {
             }
 
             try {
-              this.handleSWMessage(e.data, handler);
+              this.handleSWMessage(e.data, onMessage);
             } catch (error) {
               if (!this.#port) {
                 //Should never happen
@@ -139,4 +137,4 @@ class MessageHandlerAdapter<T extends ActionData> {
   };
 }
 
-export { MessageHandlerAdapter };
+export { WorkerAdapter };

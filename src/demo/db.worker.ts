@@ -6,7 +6,7 @@ import sqlite3InitModule, {
   type OpfsSAHPoolDatabase,
 } from "@sqlite.org/sqlite-wasm";
 import { CONFIGS_KEY } from "./const";
-import { MessageHandlerAdapter } from "../library/adapters/MessageHandlerAdapter";
+import { WorkerAdapter } from "../library/adapters/WorkerAdapter";
 
 let db: OpfsSAHPoolDatabase | null = null;
 
@@ -61,7 +61,7 @@ type Config = {
   [postMessage]: (payload: DBExecBody) => void;
 };
 
-const adapter = new MessageHandlerAdapter<Config>((payload) => {
+const adapter = new WorkerAdapter<Config>((payload) => {
   try {
     if (!db) {
       //Should never happen
