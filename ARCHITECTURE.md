@@ -36,12 +36,7 @@ Acts as a bridge between the **Service Worker** and the **Worker** for the custo
 
 ## Adapters
 
-### MessageHandlerAdapter
+### WorkerAdapter
 
-Shapes user data handler so that it fits into library architecture, receives its port via _SW_PORT_ and answers to a possible _PING_.
+Shapes event handlers so that they fit into library architecture, receives its port via _SW_PORT_ and answers to a possible _PING_.\
 Must be used in the **Worker** file to handle the messages from the **Service Worker**.
-
-### ActionsAdapter
-
-Inject custom configs to handle different stages of an operation.\
-The _key_ is essential to differentiate configs for both internal and external use.\

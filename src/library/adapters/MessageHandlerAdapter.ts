@@ -12,9 +12,6 @@ type HandlerPayload<T extends ActionData> = {
   [K in Extract<keyof T, string>]: HandlerData<K, Parameters<T[K]>[0]>;
 }[Extract<keyof T, string>];
 
-/**
- * Shapes user data handler so that it fits into library architecture
- */
 class WorkerAdapter<T extends ActionData> {
   #initializerDW: () => void;
   #port: MessagePort | null = null;
