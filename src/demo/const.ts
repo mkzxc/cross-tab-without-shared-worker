@@ -3,4 +3,6 @@ const CONFIGS_KEY = {
   getMessage: "GET_MESSAGES",
 } as const;
 
-export { CONFIGS_KEY };
+const CUSTOM_HEADER = "X-Key" as const;
+
+export { CONFIGS_KEY, CUSTOM_HEADER };

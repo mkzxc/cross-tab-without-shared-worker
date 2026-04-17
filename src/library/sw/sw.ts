@@ -12,10 +12,12 @@ class SW {
   //TODO Rename
   #map = new Map<string, { tabsService: TabService; dwService: DWService }>();
   #Gateway;
+  #header;
 
-  constructor() {
+  constructor(header: string) {
     this.#sw = self as unknown as ServiceWorkerGlobalScope;
     this.#Gateway = new Gateway();
+    this.#header = header;
   }
 
   private isPortAlive(idDW: string) {
@@ -178,8 +180,8 @@ class SW {
     });
 
     this.#sw.addEventListener("fetch", (event) => {
-      //Only request with X-Key header will be custom handled
-      const keyHeader = event.request.headers.get("X-Key");
+      //Only request with user supplied header will be custom handled
+      const keyHeader = event.request.headers.get(this.#header);
 
       if (typeof keyHeader === "string" && keyHeader.length > 0) {
         //Find DW linked to Tab causing request

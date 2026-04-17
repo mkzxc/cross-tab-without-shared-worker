@@ -1,3 +1,4 @@
+import { CUSTOM_HEADER } from "../../../demo/const";
 import type { ENDPOINTS } from "../../api/endpoints";
 
 //Barebone implementation of fetcher
@@ -11,8 +12,7 @@ async function fetcher(
       body: JSON.stringify({
         sql: "SELECT * FROM messages ORDER BY id DESC LIMIT 5",
       }),
-      //TODO For new architecture, shouldn't be hardcoded tho
-      headers: { "X-Key": "GET_MESSAGES" },
+      headers: { [CUSTOM_HEADER]: "GET_MESSAGES" },
     });
   }
   return await fetch("/__db__/exec", {
@@ -21,8 +21,7 @@ async function fetcher(
       sql: "INSERT INTO messages (content, created_at) VALUES (?,?)",
       bind: ["Hello from tab!", Date.now()],
     }),
-    //TODO For new architecture, shouldn't be hardcoded tho
-    headers: { "X-Key": "POST_MESSAGE" },
+    headers: { [CUSTOM_HEADER]: "POST_MESSAGE" },
   });
 }
 
