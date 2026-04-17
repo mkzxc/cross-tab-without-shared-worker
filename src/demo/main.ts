@@ -1,29 +1,9 @@
-import type { BindingSpec } from "@sqlite.org/sqlite-wasm";
 import { setupButtons } from "./buttons";
 import { setupReact } from "./react";
 import { QUERY_KEYS } from "./react/api/queryKeys";
 import { queryClient } from "./react/core/frameworks/network";
 import { Tab } from "../library/tab";
-import { CONFIGS_KEY } from "./const";
-
-const getMessage = CONFIGS_KEY["getMessage"];
-const postMessage = CONFIGS_KEY["postMessage"];
-
-type DBExecBody = {
-  sql: string;
-  bind?: BindingSpec;
-};
-
-type ApiModel = {
-  id: string;
-  date: number;
-  value: string;
-};
-
-type Config = {
-  [getMessage]: (payload: DBExecBody) => ApiModel;
-  [postMessage]: (payload: DBExecBody) => void;
-};
+import type { Config } from "./types";
 
 const id = Math.random() > 0.5 ? "abc" : "def";
 

@@ -1,3 +1,5 @@
+//TODO If possible, handle everything that is shared between JS realms in the best way memory-wise
+
 const CONFIGS_KEY = {
   postMessage: "POST_MESSAGE",
   getMessage: "GET_MESSAGES",

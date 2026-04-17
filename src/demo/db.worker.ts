@@ -2,11 +2,11 @@
 /// <reference lib="webworker" />
 
 import sqlite3InitModule, {
-  type BindingSpec,
   type OpfsSAHPoolDatabase,
 } from "@sqlite.org/sqlite-wasm";
 import { CONFIGS_KEY } from "./const";
 import { WorkerAdapter } from "../library/adapters/WorkerAdapter";
+import type { Config } from "./types";
 
 let db: OpfsSAHPoolDatabase | null = null;
 
@@ -40,26 +40,6 @@ async function initDB() {
 
   console.log("DW: Initialized DB");
 }
-
-//TODO Handle everything that is shared between JS realms in the best way memory-wise
-type DBExecBody = {
-  sql: string;
-  bind?: BindingSpec;
-};
-
-type ApiModel = {
-  id: string;
-  date: number;
-  value: string;
-};
-
-const getMessage = CONFIGS_KEY["getMessage"];
-const postMessage = CONFIGS_KEY["postMessage"];
-
-type Config = {
-  [getMessage]: (payload: DBExecBody) => ApiModel;
-  [postMessage]: (payload: DBExecBody) => void;
-};
 
 const adapter = new WorkerAdapter<Config>((payload) => {
   try {
