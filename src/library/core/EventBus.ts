@@ -1,6 +1,6 @@
 import type { ActionData } from "../adapters/types";
 import { SW_TO_TAB_MESSAGE_TYPES } from "../const";
-import type { SWToTabMessage } from "../types";
+import type { SWToTabMessage, SWToTabMessageOnSuccess } from "../types";
 
 const LIMIT = 25;
 
@@ -17,15 +17,11 @@ type Topic = (typeof TOPICS)[number];
 type SubscriberCallbackPayload<
   T extends ActionData,
   U extends Topic,
-> = U extends BaseTopic
-  ? undefined
-  : {
-      key: keyof T;
-      result: Exclude<
-        Extract<SWToTabMessage, { type: Topic }>,
-        { type: BaseTopic }
-      >["payload"];
-    };
+> = U extends "OP_SUCCESS"
+  ? SWToTabMessageOnSuccess<T>["payload"]
+  : U extends "OP_ERROR"
+    ? Extract<SWToTabMessage, { type: "OP_ERROR" }>["payload"]
+    : undefined;
 
 type SubscriberCallback<
   T extends ActionData,

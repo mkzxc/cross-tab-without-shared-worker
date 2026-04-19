@@ -180,12 +180,13 @@ class Tab<T extends ActionData> {
         }
 
         if (event.data.type === "OP_SUCCESS") {
-          //@ts-expect-error This is linked to TODO in library/types.ts
-          this.publish(event.data.type, event.data.payload);
+          this.publish(event.data.type, {
+            key: event.data.payload.key,
+            result: event.data.payload.result as ReturnType<T[keyof T]>,
+          });
         }
 
         if (event.data.type === "OP_ERROR") {
-          //@ts-expect-error This is linked to TODO in library/types.ts
           this.publish(event.data.type, event.data.payload);
         }
 

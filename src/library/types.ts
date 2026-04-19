@@ -1,3 +1,4 @@
+import type { ActionData } from "./adapters/types";
 import type {
   DW_TO_SW_MESSAGE_TYPES,
   DW_TO_TAB_MESSAGE_TYPES,
@@ -21,16 +22,22 @@ type TabToSWMessage =
   | { type: (typeof TAB_TO_SW_MESSAGE_TYPES)[4] }
   | { type: (typeof TAB_TO_SW_MESSAGE_TYPES)[5] };
 
+type SWToTabMessageOnSuccess<T extends ActionData> = {
+  type: (typeof SW_TO_TAB_MESSAGE_TYPES)[3];
+  payload: { key: keyof T; result: ReturnType<T[keyof T]> };
+};
+type SWToTabMessageOnError<T extends ActionData> = {
+  type: (typeof SW_TO_TAB_MESSAGE_TYPES)[5];
+  payload: { key: keyof T; error: string };
+};
+
 type SWToTabMessage =
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[0] }
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[1] }
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[2] }
-  /**
-   * //TODO Improve this type by "synchronizing it" with Gateway message sent to notifyAllTabs
-   */
-  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[3]; payload: unknown }
+  | SWToTabMessageOnSuccess<ActionData>
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[4]; payload: boolean }
-  | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[5]; payload: { error: string } }
+  | SWToTabMessageOnError<ActionData>
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[6] }
   | { type: (typeof SW_TO_TAB_MESSAGE_TYPES)[7] };
 
@@ -59,4 +66,5 @@ export type {
   SWToDWMessage,
   TabToDWMessage,
   DWToTabMessage,
+  SWToTabMessageOnSuccess,
 };
